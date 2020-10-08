@@ -15,6 +15,7 @@ A [JSON API](http://jsonapi.org) Implementation for Go, to be used e.g. as serve
 - [Interfaces to implement](#interfaces-to-implement)
   - [Responder](#responder)
   - [EntityNamer](#entitynamer)
+  - [EntityPather](#entitypather)
   - [MarshalIdentifier](#marshalidentifier)
   - [UnmarshalIdentifier](#unmarshalidentifier)
   - [Marshalling with References to other structs](#marshalling-with-references-to-other-structs)
@@ -164,6 +165,27 @@ have to implement `GetName`
 ```go
 func (s UnicornPost) GetName() string {
 	return "unicorn-posts"
+}
+```
+
+### EntityPather
+```go
+type EntityPather interface {
+	GetPath() string
+}
+```
+
+EntityPather is an optional interface used to customize the path that is generated for resources.
+The resulting base URL will take the form `/{apiPrefix}/{path}/{id}`
+
+When not implemented the resource type name will be used. 
+This matches the [recommended url format](https://jsonapi.org/recommendations/#urls-resource-collections)
+The JSON:API specification however is agnostic about URL formats. 
+You may choose to implement the interface to change the resource type specific section of the path. 
+
+```go
+func (s UnicornPost) GetPath() string {
+	return "blog/unicornposts"
 }
 ```
 

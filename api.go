@@ -244,8 +244,14 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		return info
 	}
 
+	// check if EntityPather interface is implemented and use that as path instead
+	path := name
+	if entityPather, ok := prototype.(jsonapi.EntityPather); ok {
+		path = strings.Trim(entityPather.GetPath(), "/")
+	}
+
 	prefix := strings.Trim(api.info.prefix, "/")
-	baseURL := "/" + name
+	baseURL := "/" + path
 	if prefix != "" {
 		baseURL = "/" + prefix + baseURL
 	}
