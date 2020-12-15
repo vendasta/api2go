@@ -256,10 +256,10 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		baseURL = "/" + prefix + baseURL
 	}
 
-	api.router.Handle("OPTIONS", baseURL, func(w http.ResponseWriter, r *http.Request, _ map[string]string, context map[string]interface{}) {
+	api.router.Handle("OPTIONS", baseURL, func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 		c := api.contextPool.Get().(APIContexter)
-		c.Reset()
-
+		c.Reset(r.Context())
+		c.Set("PathParams", params)
 		for key, val := range context {
 			c.Set(key, val)
 		}
@@ -270,10 +270,11 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		api.contextPool.Put(c)
 	})
 
-	api.router.Handle("GET", baseURL, func(w http.ResponseWriter, r *http.Request, _ map[string]string, context map[string]interface{}) {
+	api.router.Handle("GET", baseURL, func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 		info := requestInfo(r, api)
 		c := api.contextPool.Get().(APIContexter)
-		c.Reset()
+		c.Reset(r.Context())
+		c.Set("PathParams", params)
 
 		for key, val := range context {
 			c.Set(key, val)
@@ -289,9 +290,10 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 	})
 
 	if _, ok := source.(ResourceGetter); ok {
-		api.router.Handle("OPTIONS", baseURL+"/:id", func(w http.ResponseWriter, r *http.Request, _ map[string]string, context map[string]interface{}) {
+		api.router.Handle("OPTIONS", baseURL+"/:id", func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 			c := api.contextPool.Get().(APIContexter)
-			c.Reset()
+			c.Reset(r.Context())
+			c.Set("PathParams", params)
 
 			for key, val := range context {
 				c.Set(key, val)
@@ -306,7 +308,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		api.router.Handle("GET", baseURL+"/:id", func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 			info := requestInfo(r, api)
 			c := api.contextPool.Get().(APIContexter)
-			c.Reset()
+			c.Reset(r.Context())
+			c.Set("PathParams", params)
 
 			for key, val := range context {
 				c.Set(key, val)
@@ -330,7 +333,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 				return func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 					info := requestInfo(r, api)
 					c := api.contextPool.Get().(APIContexter)
-					c.Reset()
+					c.Reset(r.Context())
+					c.Set("PathParams", params)
 
 					for key, val := range context {
 						c.Set(key, val)
@@ -349,7 +353,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 				return func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 					info := requestInfo(r, api)
 					c := api.contextPool.Get().(APIContexter)
-					c.Reset()
+					c.Reset(r.Context())
+					c.Set("PathParams", params)
 
 					for key, val := range context {
 						c.Set(key, val)
@@ -367,7 +372,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 			api.router.Handle("PATCH", baseURL+"/:id/relationships/"+relation.Name, func(relation jsonapi.Reference) routing.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 					c := api.contextPool.Get().(APIContexter)
-					c.Reset()
+					c.Reset(r.Context())
+					c.Set("PathParams", params)
 
 					for key, val := range context {
 						c.Set(key, val)
@@ -387,7 +393,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 				api.router.Handle("POST", baseURL+"/:id/relationships/"+relation.Name, func(relation jsonapi.Reference) routing.HandlerFunc {
 					return func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 						c := api.contextPool.Get().(APIContexter)
-						c.Reset()
+						c.Reset(r.Context())
+						c.Set("PathParams", params)
 
 						for key, val := range context {
 							c.Set(key, val)
@@ -405,7 +412,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 				api.router.Handle("DELETE", baseURL+"/:id/relationships/"+relation.Name, func(relation jsonapi.Reference) routing.HandlerFunc {
 					return func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 						c := api.contextPool.Get().(APIContexter)
-						c.Reset()
+						c.Reset(r.Context())
+						c.Set("PathParams", params)
 
 						for key, val := range context {
 							c.Set(key, val)
@@ -427,7 +435,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		api.router.Handle("POST", baseURL, func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 			info := requestInfo(r, api)
 			c := api.contextPool.Get().(APIContexter)
-			c.Reset()
+			c.Reset(r.Context())
+			c.Set("PathParams", params)
 
 			for key, val := range context {
 				c.Set(key, val)
@@ -445,7 +454,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 	if _, ok := source.(ResourceDeleter); ok {
 		api.router.Handle("DELETE", baseURL+"/:id", func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 			c := api.contextPool.Get().(APIContexter)
-			c.Reset()
+			c.Reset(r.Context())
+			c.Set("PathParams", params)
 
 			for key, val := range context {
 				c.Set(key, val)
@@ -464,7 +474,8 @@ func (api *API) addResource(prototype jsonapi.MarshalIdentifier, source interfac
 		api.router.Handle("PATCH", baseURL+"/:id", func(w http.ResponseWriter, r *http.Request, params map[string]string, context map[string]interface{}) {
 			info := requestInfo(r, api)
 			c := api.contextPool.Get().(APIContexter)
-			c.Reset()
+			c.Reset(r.Context())
+			c.Set("PathParams", params)
 
 			for key, val := range context {
 				c.Set(key, val)

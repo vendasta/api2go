@@ -2,7 +2,6 @@ package api2go
 
 import (
 	"context"
-	"time"
 )
 
 // APIContextAllocatorFunc to allow custom context implementations
@@ -13,12 +12,14 @@ type APIContexter interface {
 	context.Context
 	Set(key string, value interface{})
 	Get(key string) (interface{}, bool)
-	Reset()
+	Reset(ctx context.Context)
 }
 
-// APIContext api2go context for handlers, nil implementations related to Deadline and Done.
+// APIContext api2go context for handlers
+// It is a mutable implementation of a context.Context
 type APIContext struct {
 	keys map[string]interface{}
+	context.Context
 }
 
 // Set a string key value in the context
@@ -34,36 +35,28 @@ func (c *APIContext) Get(key string) (value interface{}, exists bool) {
 	if c.keys != nil {
 		value, exists = c.keys[key]
 	}
+	if !exists {
+		value = c.Context.Value(key)
+		exists = value != nil
+	}
 	return
 }
 
 // Reset resets all values on Context, making it safe to reuse
-func (c *APIContext) Reset() {
+func (c *APIContext) Reset(ctx context.Context) {
 	c.keys = nil
-}
-
-// Deadline implements net/context
-func (c *APIContext) Deadline() (deadline time.Time, ok bool) {
-	return
-}
-
-// Done implements net/context
-func (c *APIContext) Done() <-chan struct{} {
-	return nil
-}
-
-// Err implements net/context
-func (c *APIContext) Err() error {
-	return nil
+	c.Context = ctx
 }
 
 // Value implements net/context
 func (c *APIContext) Value(key interface{}) interface{} {
 	if keyAsString, ok := key.(string); ok {
-		val, _ := c.Get(keyAsString)
-		return val
+		val, exists := c.Get(keyAsString)
+		if exists {
+			return val
+		}
 	}
-	return nil
+	return c.Context.Value(key)
 }
 
 // Compile time check
